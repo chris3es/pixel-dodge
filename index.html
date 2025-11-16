@@ -3,26 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub Game Launcher</title>
+  <title>GitHub Launcher</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="launcher">
-    <h1>🐙 GitHub Game Launcher</h1>
-    <p>Welcome, developer! Ready to commit?</p>
-    
-    <button id="launchBtn">Launch Game</button>
-    
-    <div class="updates">
-      <h2>Latest Updates</h2>
-      <ul>
-        <li>🟢 Version 1.0 released</li>
-        <li>⚡ Added Octocat skins</li>
-        <li>🐛 Fixed merge conflicts</li>
-      </ul>
-    </div>
+    <header>
+      <h1>🐙 GitHub Launcher</h1>
+      <span class="version-label">Choose Version</span>
+    </header>
+
+    <main>
+      <div class="news">
+        <h2>News & Updates</h2>
+        <ul>
+          <li>⚡ New Octocat skin added</li>
+          <li>🐛 Bug fixes</li>
+          <li>🚀 Performance improvements</li>
+        </ul>
+      </div>
+
+      <div class="launch-area">
+        <p>Welcome, developer!</p>
+
+        <!-- Version Selector -->
+        <select id="versionSelect">
+          <option value="game.html">Version 1.0 (Stable)</option>
+          <option value="game_v2.html">Version 2.0 (Beta)</option>
+          <option value="game_classic.html">Classic Mode</option>
+        </select>
+
+        <!-- Play Button -->
+        <button id="launchBtn">▶ Play</button>
+      </div>
+    </main>
+
+    <footer>
+      <p>Powered by GitHub • Inspired by Minecraft Launcher</p>
+    </footer>
   </div>
-  
+
   <script src="script.js"></script>
 </body>
 </html>
