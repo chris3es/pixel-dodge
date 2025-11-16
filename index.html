@@ -8,45 +8,43 @@
 </head>
 <body>
   <div class="launcher">
+    <!-- Header -->
     <header>
-      <h1>🐙 GitHub Launcher</h1>
-      <span class="version-label">Choose Version</span>
-    </header>
-
-    <main>
-      <div class="news">
-        <h2>News & Updates</h2>
-        <ul>
-          <li>⚡ New Octocat skin added</li>
-          <li>🐛 Bug fixes</li>
-          <li>🚀 Performance improvements</li>
-        </ul>
-      </div>
-
-      <div class="launch-area">
-        <p>Welcome, developer!</p>
-
-        <!-- Profile Selector -->
-        <label for="profileSelect">Profile:</label>
+      <h1>GitHub Launcher</h1>
+      <span class="profile">Profile: 
         <select id="profileSelect">
           <option value="dev1">DevOne</option>
           <option value="dev2">CoderCat</option>
           <option value="dev3">OctoMaster</option>
         </select>
+      </span>
+    </header>
 
-        <!-- Version Selector -->
+    <!-- Main Content -->
+    <main>
+      <!-- News Sidebar -->
+      <aside class="news">
+        <h2>News</h2>
+        <ul>
+          <li>⚡ Octocat skin released</li>
+          <li>🐛 Bug fixes</li>
+          <li>🚀 Performance improvements</li>
+        </ul>
+      </aside>
+
+      <!-- Launch Area -->
+      <section class="launch-area">
         <label for="versionSelect">Version:</label>
         <select id="versionSelect">
-          <option value="game.html">Version 1.0 (Stable)</option>
-          <option value="game_v2.html">Version 2.0 (Beta)</option>
-          <option value="game_classic.html">Classic Mode</option>
+          <option value="game.html">1.0 (Stable)</option>
+          <option value="game_v2.html">2.0 (Beta)</option>
+          <option value="game_classic.html">Classic</option>
         </select>
-
-        <!-- Play Button -->
         <button id="launchBtn">▶ Play</button>
-      </div>
+      </section>
     </main>
 
+    <!-- Footer -->
     <footer>
       <p>Powered by GitHub • Inspired by Minecraft Launcher</p>
     </footer>
