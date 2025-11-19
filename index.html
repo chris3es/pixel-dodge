@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Mini Among Us</title>
   <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="app">
@@ -12,10 +13,6 @@
       <div class="brand">
         <div class="title">Mini Among Us</div>
         <div class="subtitle">WASD/Arrow keys to move · Space to interact</div>
-        <div class="legend">
-          <div class="crewmate"></div><div class="visor"></div> Crewmate
-          <div class="impostor"></div> Impostor
-        </div>
       </div>
       <div class="controls">
         <button class="btn" id="resetBtn">Reset</button>
@@ -35,11 +32,25 @@
           <div id="tasks"></div>
         </div>
       </div>
+      <div id="progressBar"><div id="progressFill"></div></div>
+      <canvas id="miniMap" width="150" height="100"></canvas>
     </div>
 
     <div class="footer">
       Tip: Finish all tasks while avoiding the impostor. Interact when near a task (press Space).
     </div>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="startScreen" class="overlay">
+    <h1>Mini Among Us</h1>
+    <button class="btn" id="startBtn">Start Game</button>
+  </div>
+
+  <!-- End Screen -->
+  <div id="endScreen" class="overlay" style="display:none;">
+    <h1 id="endMessage"></h1>
+    <button class="btn" id="restartBtn">Play Again</button>
   </div>
 
   <script>
@@ -48,19 +59,17 @@
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-    // ===== Game constants =====
+    // ===== Constants =====
     const WORLD = { w: 900, h: 520 };
     const PLAYER = { speed: 2.6, radius: 10 };
     const IMPOSTOR = { speed: 2.2, radius: 10, aggroRange: 300 };
     const TASK_RADIUS = 10;
     const INTERACT_RANGE = 24;
     const WALLS = [
-      // Rectangles: x, y, w, h — a simple ship-like layout
       {x: 80, y: 80, w: 740, h: 12},
       {x: 80, y: 428, w: 740, h: 12},
       {x: 80, y: 92, w: 12, h: 336},
       {x: 808, y: 92, w: 12, h: 336},
-      // inner rooms/corridors
       {x: 200, y: 160, w: 500, h: 10},
       {x: 200, y: 350, w: 500, h: 10},
       {x: 200, y: 160, w: 10, h: 200},
@@ -80,14 +89,13 @@
 
     // ===== State =====
     const state = {
-      running: true,
+      running: false,
       win: false,
       lose: false,
       player: { x: 130, y: 250, vx: 0, vy: 0 },
       impostor: { x: 770, y: 250, vx: 0, vy: 0, cooldown: 0 },
       tasks: TASKS_INIT.map(t => ({ ...t, done: false, progress: 0 })),
       keys: new Set(),
-      interactHold: 0,
     };
 
     // ===== DOM =====
@@ -97,6 +105,9 @@
     const tasksDiv = document.getElementById('tasks');
     const pauseBtn = document.getElementById('pauseBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const startScreen = document.getElementById('startScreen');
+    const endScreen = document.getElementById('endScreen');
+    const endMessage = document.getElementById('endMessage');
 
     // ===== Input =====
     const KEYMAP = {
@@ -117,8 +128,18 @@
       pauseBtn.textContent = state.running ? 'Pause' : 'Resume';
     });
     resetBtn.addEventListener('click', () => reset());
+    document.getElementById('startBtn').addEventListener('click', () => {
+      startScreen.style.display = 'none';
+      reset();
+      state.running = true;
+    });
+    document.getElementById('restartBtn').addEventListener('click', () => {
+      endScreen.style.display = 'none';
+      reset();
+      state.running = true;
+    });
 
-    // ===== Collision helpers =====
+    // ===== Collision =====
     function circleRectCollide(cx, cy, r, rect) {
       const nearestX = clamp(cx, rect.x, rect.x + rect.w);
       const nearestY = clamp(cy, rect.y, rect.y + rect.h);
@@ -129,21 +150,10 @@
     function resolveWalls(entity) {
       for (const w of WALLS) {
         if (circleRectCollide(entity.x, entity.y, PLAYER.radius, w)) {
-          // Push out along smallest axis
-          const left = entity.x - w.x;
-          const right = (w.x + w.w) - entity.x;
-          const top = entity.y - w.y;
-          const bottom = (w.y + w.h) - entity.y;
-          const minX = Math.min(Math.abs(left), Math.abs(right));
-          const minY = Math.min(Math.abs(top), Math.abs(bottom));
-          if (minX < minY) {
-            entity.x += (Math.abs(left) < Math.abs(right)) ? -minX : minX;
-          } else {
-            entity.y += (Math.abs(top) < Math.abs(bottom)) ? -minY : minY;
-          }
+          entity.x = clamp(entity.x, w.x - PLAYER.radius, w.x + w.w + PLAYER.radius);
+          entity.y = clamp(entity.y, w.y - PLAYER.radius, w.y + w.h + PLAYER.radius);
         }
       }
-      // Bounds
       entity.x = clamp(entity.x, 20, WORLD.w - 20);
       entity.y = clamp(entity.y, 20, WORLD.h - 20);
     }
@@ -157,18 +167,18 @@
       const speed = PLAYER.speed;
       p.vx = (state.keys.has('right') - state.keys.has('left')) * speed;
       p.vy = (state.keys.has('down') - state.keys.has('up')) * speed;
-      const mag = Math.hypot(p.vx, p.vy);
-      if (mag > speed) { p.vx *= speed / mag; p.vy *= speed / mag; }
       p.x += p.vx; p.y += p.vy;
       resolveWalls(p);
 
       // Impostor AI
       const i = state.impostor;
       const d = dist(p, i);
-      let target = null;
-      if (d < IMPOSTOR.aggroRange) target = p;
-      // Wander if not aggro
-      if (!target) {
+      if (d < IMPOSTOR.aggroRange) {
+        const dx = p.x - i.x, dy = p.y - i.y;
+        const len = Math.hypot(dx, dy) || 1;
+        i.vx = (dx / len) * IMPOSTOR.speed;
+        i.vy = (dy / len) * IMPOSTOR.speed;
+      } else {
         if (i.cooldown <= 0) {
           i.vx = rand(-1, 1) * IMPOSTOR.speed * 0.6;
           i.vy = rand(-1, 1) * IMPOSTOR.speed * 0.6;
@@ -176,12 +186,6 @@
         } else {
           i.cooldown -= dt;
         }
-      } else {
-        const dx = target.x - i.x;
-        const dy = target.y - i.y;
-        const len = Math.hypot(dx, dy) || 1;
-        i.vx = (dx / len) * IMPOSTOR.speed;
-        i.vy = (dy / len) * IMPOSTOR.speed;
       }
       i.x += i.vx; i.y += i.vy;
       resolveWalls(i);
@@ -189,6 +193,7 @@
       // Catch check
       if (dist(p, i) < PLAYER.radius + IMPOSTOR.radius + 2) {
         state.lose = true;
+        showEndScreen("Defeat! The impostor caught you!");
       }
 
       // Tasks + interaction
@@ -196,125 +201,105 @@
       if (nearTask && state.keys.has('space')) {
         nearTask.progress = Math.min(nearTask.t, nearTask.progress + dt * 1000);
         if (nearTask.progress >= nearTask.t) nearTask.done = true;
-      } else {
-        // decay slight if not interacting (keeps pressure)
-        if (nearTask && nearTask.progress > 0 && !state.keys.has('space')) {
-          nearTask.progress = Math.max(0, nearTask.progress - dt * 300);
-        }
       }
 
       // Win check
       if (state.tasks.every(t => t.done)) {
         state.win = true;
+        showEndScreen("Victory! All tasks completed!");
       }
+
+      updateProgressBar();
     }
 
     // ===== Render =====
     function draw() {
-      // Clear
       ctx.clearRect(0, 0, WORLD.w, WORLD.h);
 
-      // Background stars
+      // Background
       ctx.fillStyle = '#0b0e24';
       ctx.fillRect(0, 0, WORLD.w, WORLD.h);
-      ctx.fillStyle = '#1a1f43';
-      for (let s = 0; s < 120; s++) {
-        const x = (s * 57) % WORLD.w;
-        const y = (s * 97) % WORLD.h;
-        ctx.globalAlpha = 0.15 + (s % 5) * 0.05;
-        ctx.fillRect(x, y, 2, 2);
-      }
-      ctx.globalAlpha = 1;
 
       // Walls
       for (const w of WALLS) {
         ctx.fillStyle = '#2a315f';
         ctx.fillRect(w.x, w.y, w.w, w.h);
-        ctx.strokeStyle = '#43508e';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1);
       }
 
-      // Tasks nodes
+      // Tasks
       for (const t of state.tasks) {
         ctx.beginPath();
         ctx.arc(t.x, t.y, TASK_RADIUS, 0, Math.PI*2);
-        ctx.closePath();
         ctx.fillStyle = t.done ? '#7bed9f' : '#ffdd57';
-        ctx.shadowColor = ctx.fillStyle;
-        ctx.shadowBlur = 8;
         ctx.fill();
-        ctx.shadowBlur = 0;
-
-        // Progress ring
-        if (!t.done && t.progress > 0) {
-          ctx.strokeStyle = '#9cf0ff';
-          ctx.lineWidth = 3;
-          const pct = t.progress / t.t;
-          ctx.beginPath();
-          ctx.arc(t.x, t.y, TASK_RADIUS + 6, -Math.PI/2, -Math.PI/2 + pct * Math.PI*2);
-          ctx.stroke();
-        }
       }
 
-      // Crewmate (player)
+      // Crewmate
       drawCrewmate(state.player.x, state.player.y, '#e74c3c');
-
       // Impostor
       drawCrewmate(state.impostor.x, state.impostor.y, '#8e44ad');
 
-      // Status HUD
+      // HUD
       const remaining = state.tasks.filter(t => !t.done).length;
-      const lines = [];
-      if (state.win) lines.push('Victory: All tasks completed!');
-      else if (state.lose) lines.push('Defeat: Caught by the impostor.');
-      else lines.push(`Tasks remaining: ${remaining}`);
-      lines.push(`Use Space near a task to complete it.`);
-      statusDiv.innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+      statusDiv.innerHTML = state.win ? "Victory!" :
+                            state.lose ? "Defeat!" :
+                            `Tasks remaining: ${remaining}`;
+      tasksDiv.innerHTML = state.tasks.map(t =>
+        `<div class="task ${t.done ? 'completed' : ''}">
+          <div class="dot"></div>${t.id}: ${t.done ? 'Done' : Math.floor((t.progress/t.t)*100)+'%'}
+        </div>`).join('');
 
-      // Task list HUD
-      tasksDiv.innerHTML = state.tasks.map(t => {
-        const pct = Math.floor((t.progress / t.t) * 100);
-        return `<div class="task ${t.done ? 'completed' : ''}">
-          <div class="dot"></div>
-          <div><strong>${t.id}:</strong> ${t.done ? 'Done' : pct + '%'}</div>
-        </div>`;
-      }).join('');
+      drawMiniMap();
     }
 
     function drawCrewmate(x, y, color) {
-      // Body
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.roundRect(x - 12, y - 14, 24, 28, 6);
       ctx.fill();
-
-      // Backpack
-      ctx.fillStyle = shade(color, -20);
-      ctx.beginPath();
-      ctx.roundRect(x + 10, y - 8, 10, 16, 3);
-      ctx.fill();
-
-      // Visor
       ctx.fillStyle = '#9cf0ff';
       ctx.beginPath();
       ctx.roundRect(x - 6, y - 6, 14, 10, 4);
       ctx.fill();
-
-      // Outline
-      ctx.strokeStyle = '#0b0e24';
-      ctx.lineWidth = 2;
-      ctx.stroke();
     }
 
-    function shade(hex, pct) {
-      // Simple color shade for backpack
-      const c = hex.replace('#','');
-      const r = parseInt(c.substring(0,2),16);
-      const g = parseInt(c.substring(2,4),16);
-      const b = parseInt(c.substring(4,6),16);
-      const f = (v) => clamp(Math.round(v + (pct/100)*255), 0, 255);
-      return '#' + [f(r), f(g), f(b)].map(v => v.toString(16).padStart(2,'0')).join('');
+    function drawMiniMap() {
+      const mm = document.getElementById('miniMap').getContext('2d');
+      mm.clearRect(0,0,150,100);
+      mm.fillStyle = '#111';
+      mm.fillRect(0,0,150,100);
+      const scaleX = 150 / WORLD.w;
+      const scaleY = 100 / WORLD.h;
+      state.tasks.forEach(t => {
+        mm.fillStyle = t.done ? '#7bed9f' : '#ffdd57';
+        mm.fillRect(t.x*scaleX, t.y*scaleY, 4, 4);
+      });
+      mm.fillStyle = '#e74c3c';
+      mm.fillRect(state.player.x*scaleX, state.player.y*scaleY, 6, 6);
+      mm.fillStyle = '#8e44ad';
+      mm.fillRect(state.impostor.x*scaleX, state.impostor.y*scaleY, 6, 6);
+    }
+
+    function updateProgressBar() {
+      const done = state.tasks.filter(t => t.done).length;
+      const pct = (done / state.tasks.length) * 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+    }
+
+    function showEndScreen(message) {
+      endMessage.textContent = message;
+      endScreen.style.display = 'flex';
+      state.running = false;
+    }
+
+    function reset() {
+      state.win = false;
+      state.lose = false;
+      state.player = { x: 130, y: 250, vx: 0, vy: 0 };
+      state.impostor = { x: 770, y: 250, vx: 0, vy: 0, cooldown: 0 };
+      state.tasks = TASKS_INIT.map(t => ({ ...t, done: false, progress: 0 }));
+      pauseBtn.textContent = 'Pause';
+      updateProgressBar();
     }
 
     // ===== Loop =====
@@ -326,17 +311,6 @@
       draw();
       requestAnimationFrame(frame);
     }
-    function reset() {
-      state.running = true;
-      state.win = false;
-      state.lose = false;
-      state.player = { x: 130, y: 250, vx: 0, vy: 0 };
-      state.impostor = { x: 770, y: 250, vx: 0, vy: 0, cooldown: 0 };
-      state.tasks = TASKS_INIT.map(t => ({ ...t, done: false, progress: 0 }));
-      pauseBtn.textContent = 'Pause';
-    }
-
-    // Start
     requestAnimationFrame(frame);
   </script>
 </body>
