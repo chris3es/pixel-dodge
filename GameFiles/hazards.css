@@ -1,0 +1,16 @@
+.hazard {
+  border-radius: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.hazard.fall {
+  background-color: #5aa9ff;
+}
+
+.hazard.zig {
+  background-color: #ff8c69;
+}
+
+.hazard.despawn {
+  opacity: 0.3;
+}
