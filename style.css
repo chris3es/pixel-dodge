@@ -5,7 +5,7 @@ html, body {
   margin: 0;
   background: #0f1226; /* Deep space backdrop */
   color: #e6e7ff;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Fredoka One', system-ui, sans-serif;
 }
 
 /* Centered game container */
@@ -51,7 +51,7 @@ html, body {
   appearance: none;
   border: none;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 20px;
   font-weight: 600;
   cursor: pointer;
   color: #0f1226;
@@ -145,24 +145,48 @@ html, body {
   text-align: center;
 }
 
-/* Crewmate and impostor legend (for mini-map icon) */
-.legend {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px dashed rgba(140, 170, 255, 0.25);
+/* Progress bar */
+#progressBar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 16px;
   border-radius: 8px;
-  padding: 4px 8px;
-  margin-left: 8px;
+  background: #333;
+  overflow: hidden;
 }
-.legend .crewmate {
-  width: 14px; height: 14px; border-radius: 4px; background: #e74c3c;
-  box-shadow: inset -2px -2px 0px #b03a2e;
+#progressFill {
+  height: 100%;
+  width: 0%;
+  background: #7bed9f;
+  transition: width 0.3s;
 }
-.legend .visor {
-  width: 8px; height: 6px; border-radius: 3px; background: #9cf0ff; margin-left: -6px;
+
+/* Overlay screens */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  z-index: 20;
 }
-.legend .impostor {
-  width: 14px; height: 14px; border-radius: 4px; background: #8e44ad;
-  box-shadow: inset -2px -2px 0px #6c3483;
+.overlay h1 {
+  font-size: 40px;
+  margin-bottom: 20px;
+}
+
+/* Mini-map */
+#miniMap {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  border: 2px solid #555;
+  border-radius: 8px;
+  background: #111;
 }
