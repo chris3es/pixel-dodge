@@ -3,55 +3,31 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Pixel Dodge</title>
-  <meta name="description" content="A tiny HTML/JS canvas game where you dodge falling hazards." />
-  <meta property="og:title" content="Pixel Dodge" />
-  <meta property="og:description" content="Dodge hazards, chase a high score, and level up difficulty." />
-  <meta property="og:type" content="website" />
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="preload" href="style.css" as="style" />
+  <title>Pixel Dodge • Start</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="./">
-      <img class="brand-mark" src="favicon.svg" alt="" aria-hidden="true" />
-      <span class="brand-name">Pixel Dodge</span>
-    </a>
-    <nav class="site-nav">
-      <a href="./">Play</a>
-      <a href="about.html">About</a>
-      <a href="https://github.com/your-username/pixel-dodge" target="_blank" rel="noopener">GitHub</a>
-    </nav>
+    <h1>Pixel Dodge</h1>
   </header>
 
   <main class="content">
-    <section class="hero">
-      <h1>Play Pixel Dodge</h1>
-      <p class="sub">WASD or Arrow keys to move • P to pause • R to restart</p>
+    <section class="login">
+      <h2>Start Game</h2>
+      <form id="login-form">
+        <label>Username <input type="text" id="username" required /></label>
+        <label>Password <input type="password" id="password" required /></label>
+        <button type="submit" class="btn">Play</button>
+      </form>
+      <p id="login-msg"></p>
     </section>
 
-    <section class="game-wrap">
-      <div id="hud" role="status" aria-live="polite">
-        <span>Score: <strong id="score">0.0</strong></span>
-        <span>Best: <strong id="best">0.0</strong></span>
-        <span>Lives: <strong id="lives">3</strong></span>
-      </div>
-      <canvas id="game" width="640" height="360" aria-label="Pixel Dodge game canvas"></canvas>
-      <div id="cta" class="cta">WASD / Arrows to move • P to pause • R to restart</div>
-      <div class="controls">
-        <button id="btn-pause" class="btn" type="button" aria-pressed="false">Pause</button>
-        <button id="btn-restart" class="btn" type="button">Restart</button>
-      </div>
+    <section class="leaderboard">
+      <h2>Leaderboard</h2>
+      <ol id="leaderboard-list"></ol>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <p><span class="muted">©</span> Pixel Dodge — Built with HTML/JS Canvas</p>
-    <p><a href="about.html">About</a> • <a href="https://github.com/your-username/pixel-dodge">Source</a></p>
-  </footer>
-
-  <script src="script.js" type="module"></script>
+  <script src="password.js"></script>
 </body>
 </html>
