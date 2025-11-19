@@ -1,70 +1,168 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: #1e1e1e;
-  color: #fff;
+/* Reset and base styles */
+* { box-sizing: border-box; }
+html, body {
+  height: 100%;
   margin: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  background: #0f1226; /* Deep space backdrop */
+  color: #e6e7ff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
 }
 
-.launcher, .login-box {
-  background: #2b2b2b;
-  border: 2px solid #000;
-  border-radius: 6px;
-  width: 400px;
-  padding: 20px;
+/* Centered game container */
+#app {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 900px) 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 16px;
+  min-height: 100%;
+}
+
+/* Header / Title */
+.header {
+  grid-column: 2;
+  padding: 12px 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.brand .title {
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  font-size: 20px;
+  text-transform: uppercase;
+}
+.brand .subtitle {
+  opacity: 0.7;
+  font-size: 13px;
+}
+
+/* Controls row */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn {
+  appearance: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #0f1226;
+  background: linear-gradient(180deg, #9cf0ff 0%, #5dd3ff 100%);
+  box-shadow: 0 6px 16px rgba(93, 211, 255, 0.25);
+}
+.btn:active { transform: translateY(1px); }
+
+/* Canvas wrap and HUD */
+.game {
+  grid-column: 2;
+  position: relative;
+  border-radius: 16px;
+  background: radial-gradient(1200px 600px at 50% 0%, #1a1f43 0%, #10132b 60%, #0f1226 100%);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+#canvas {
+  display: block;
+  width: 100%;
+  height: 520px;
+}
+
+/* HUD overlay */
+.hud {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.hud .panel {
+  backdrop-filter: blur(6px);
+  background: rgba(18, 22, 48, 0.6);
+  border: 1px solid rgba(140, 170, 255, 0.25);
+  border-radius: 12px;
+  padding: 10px 12px;
+  pointer-events: auto;
+}
+.panel h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* Task list styling */
+#tasks {
+  display: grid;
+  gap: 6px;
+  min-width: 200px;
+}
+.task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.task .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffdd57;
+  box-shadow: 0 0 10px #ffdd57aa;
+}
+.task.completed .dot {
+  background: #7bed9f;
+  box-shadow: 0 0 10px #7bed9faa;
+}
+.task.completed {
+  opacity: 0.7;
+}
+
+/* Status panel */
+#status {
+  font-size: 13px;
+  display: grid;
+  gap: 4px;
+}
+
+/* Footer tip */
+.footer {
+  grid-column: 2;
+  padding: 10px 0 24px;
+  opacity: 0.7;
+  font-size: 12px;
   text-align: center;
 }
 
-header {
-  background: #3c3c3c;
-  padding: 10px;
-  display: flex;
-  justify-content: space-between;
+/* Crewmate and impostor legend (for mini-map icon) */
+.legend {
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
+  border: 1px dashed rgba(140, 170, 255, 0.25);
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin-left: 8px;
 }
-
-main {
-  display: flex;
-  flex: 1;
+.legend .crewmate {
+  width: 14px; height: 14px; border-radius: 4px; background: #e74c3c;
+  box-shadow: inset -2px -2px 0px #b03a2e;
 }
-
-.news {
-  flex: 2;
-  background: #252525;
-  padding: 20px;
-  border-right: 1px solid #000;
+.legend .visor {
+  width: 8px; height: 6px; border-radius: 3px; background: #9cf0ff; margin-left: -6px;
 }
-
-.launch-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-select, input {
-  margin: 10px 0;
-  padding: 6px;
-  background: #1e1e1e;
-  color: #fff;
-  border: 1px solid #444;
-  border-radius: 4px;
-}
-
-button {
-  background: #28a745;
-  border: none;
-  padding: 10px 20px;
-  font-size: 16px;
-  color: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #218838;
+.legend .impostor {
+  width: 14px; height: 14px; border-radius: 4px; background: #8e44ad;
+  box-shadow: inset -2px -2px 0px #6c3483;
 }
